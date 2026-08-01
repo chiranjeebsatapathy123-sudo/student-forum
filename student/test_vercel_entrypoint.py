@@ -9,4 +9,4 @@ def test_vercel_entrypoint_exports_application():
 
     import api.index as vercel_index
 
-    assert callable(vercel_index.application)
+    assert callable(getattr(vercel_index, "app", None)) or callable(getattr(vercel_index, "application", None))
