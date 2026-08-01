@@ -23,8 +23,8 @@
                 <a href="{% url 'post_detail' post.pk %}" class="text-decoration-none text-dark">{{ post.title }}</a>
             </h5>
             <p class="text-muted mb-2">{{ post.description|truncatewords:20 }}</p>
-            <div class="small text-muted d-flex gap-3">
-                <span><i class="fas fa-user me-1"></i>{{ post.user.username }}</span>
+            <div class="small text-muted d-flex gap-3 flex-wrap align-items-center">
+                <span><i class="fas fa-pencil-alt me-1"></i>Written by {{ post.user.username }}</span>
                 <span><i class="fas fa-calendar me-1"></i>{{ post.created_date|date:"M d, Y" }}</span>
                 <span><i class="fas fa-comment me-1"></i>{{ post.comment_count }} comments</span>
             </div>
