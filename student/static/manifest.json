@@ -1,0 +1,12 @@
+{
+    "name": "Student Forum",
+    "short_name": "StudentForum",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0b2545",
+    "theme_color": "#0b2545",
+    "icons": [
+        { "src": "/static/images/logo-mark.svg", "sizes": "80x80", "type": "image/svg+xml" },
+        { "src": "/static/images/logo-small.svg", "sizes": "40x40", "type": "image/svg+xml" }
+    ]
+}

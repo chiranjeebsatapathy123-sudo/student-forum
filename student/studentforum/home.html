@@ -1,0 +1,115 @@
+{% extends 'studentforum/base.html' %}
+{% block title %}Home - Student Discussion Forum{% endblock %}
+{% block content %}
+
+<header class="bg-primary text-white py-5 rounded mb-4">
+    <div class="container">
+        <h1 class="fw-bold mb-2"><i class="fas fa-comments me-3"></i>Student Discussion Forum</h1>
+        <p class="lead mb-4 text-white-50">Ask questions, share knowledge, and learn together</p>
+        <form method="GET" action="{% url 'home' %}" role="search" aria-label="Search posts">
+            <div class="input-group input-group-lg" style="max-width:640px;">
+                <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
+                <input class="form-control form-control-lg" type="search" name="q" value="{{ query }}" placeholder="Search posts by title or keyword..." aria-label="Search posts">
+                <button class="btn btn-light" type="submit">Search</button>
+            </div>
+        </form>
+    </div>
+</header>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    {% if query %}Results for "{{ query }}"
+                    {% else %}Latest Discussions{% endif %}
+                    <span class="text-muted fs-6 fw-normal ms-2">({{ posts.paginator.count }} posts)</span>
+                </h5>
+                {% if user.is_authenticated %}
+                <a href="{% url 'create_post' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i>New Post
+                </a>
+                {% endif %}
+            </div>
+
+            {% for post in posts %}
+            <div class="card post-card mb-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-1">
+                            <a href="{% url 'post_detail' post.pk %}" class="text-decoration-none text-dark fw-bold">{{ post.title }}</a>
+                        </h5>
+                        {% if post.category %}
+                        <a href="{% url 'category_posts' post.category.pk %}" class="category-badge ms-2 flex-shrink-0">{{ post.category.name }}</a>
+                        {% endif %}
+                    </div>
+                    <p class="card-text text-muted mb-3">{{ post.description|truncatewords:25 }}</p>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small">
+                            <i class="fas fa-user-circle me-1"></i><strong>{{ post.user.username }}</strong>
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-clock me-1"></i>{{ post.created_date|date:"M d, Y" }}
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-comment me-1"></i>{{ post.comment_count }} comments
+                        </div>
+                        <a href="{% url 'post_detail' post.pk %}" class="btn btn-outline-primary btn-sm">Read More</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card text-center py-5">
+                <div class="card-body">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No posts found</h5>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'create_post' %}" class="btn btn-primary mt-2">Create First Post</a>
+                    {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-primary mt-2">Register to Post</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if posts.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if posts.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ posts.previous_page_number }}&q={{ query }}">Previous</a></li>
+                    {% endif %}
+                    {% for i in posts.paginator.page_range %}
+                    <li class="page-item {% if posts.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page={{ i }}&q={{ query }}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if posts.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ posts.next_page_number }}&q={{ query }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sidebar-card">
+                <h6 class="fw-bold mb-3"><i class="fas fa-tags me-2 text-primary"></i>Browse Categories</h6>
+                {% for cat in categories %}
+                <a href="{% url 'category_posts' cat.pk %}" class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-2 border-bottom">
+                    <span><i class="fas fa-chevron-right me-2 text-primary" style="font-size:0.7rem"></i>{{ cat.name }}</span>
+                    <span class="badge bg-primary rounded-pill">{{ cat.post_count }}</span>
+                </a>
+                {% endfor %}
+                <a href="{% url 'category_list' %}" class="btn btn-outline-primary btn-sm w-100 mt-3">View All Categories</a>
+            </div>
+
+            {% if not user.is_authenticated %}
+            <div class="sidebar-card" style="background: linear-gradient(135deg,#2563eb,#7c3aed); color:white;">
+                <h6 class="fw-bold mb-2"><i class="fas fa-user-plus me-2"></i>Join the Forum</h6>
+                <p class="small mb-3 opacity-75">Create an account to post and comment.</p>
+                <a href="{% url 'register' %}" class="btn btn-light btn-sm w-100 fw-bold">Register Now</a>
+                <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm w-100 mt-2">Login</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
