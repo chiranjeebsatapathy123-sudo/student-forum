@@ -27,7 +27,7 @@ def home(request):
     categories = Category.objects.all()
     return render(
         request,
-        "forum/home.html",
+        "studentforum/home.html",
         {
             "posts": posts,
             "categories": categories,
@@ -49,7 +49,7 @@ def register_view(request):
             return redirect("dashboard")
     else:
         form = UserRegisterForm()
-    return render(request, "forum/register.html", {"form": form})
+    return render(request, "studentforum/register.html", {"form": form})
 
 
 def login_view(request):
@@ -72,7 +72,7 @@ def login_view(request):
         apply_bootstrap_classes(form)
         if "username" in form.fields:
             form.fields["username"].widget.attrs["autofocus"] = True
-    return render(request, "forum/login.html", {"form": form})
+    return render(request, "studentforum/login.html", {"form": form})
 
 
 def logout_view(request):
@@ -87,7 +87,7 @@ def dashboard(request):
     user_comments = Comment.objects.filter(user=request.user).order_by("-created_date")
     return render(
         request,
-        "forum/dashboard.html",
+        "studentforum/dashboard.html",
         {
             "user_posts": user_posts,
             "user_comments": user_comments,
@@ -109,7 +109,7 @@ def edit_profile(request):
             return redirect("dashboard")
     else:
         form = UserUpdateForm(instance=request.user)
-    return render(request, "forum/edit_profile.html", {"form": form})
+    return render(request, "studentforum/edit_profile.html", {"form": form})
 
 
 @login_required
@@ -125,7 +125,7 @@ def change_password(request):
     else:
         form = PasswordChangeForm(request.user)
     apply_bootstrap_classes(form)
-    return render(request, "forum/change_password.html", {"form": form})
+    return render(request, "studentforum/change_password.html", {"form": form})
 
 
 @login_required
@@ -140,7 +140,7 @@ def create_post(request):
             return redirect("post_detail", pk=post.pk)
     else:
         form = PostForm()
-    return render(request, "forum/create_post.html", {"form": form, "title": "Create Post"})
+    return render(request, "studentforum/create_post.html", {"form": form, "title": "Create Post"})
 
 
 def post_detail(request, pk):
@@ -161,7 +161,7 @@ def post_detail(request, pk):
 
     return render(
         request,
-        "forum/post_detail.html",
+        "studentforum/post_detail.html",
         {
             "post": post,
             "comments": comments,
@@ -184,7 +184,7 @@ def edit_post(request, pk):
             return redirect("post_detail", pk=pk)
     else:
         form = PostForm(instance=post)
-    return render(request, "forum/create_post.html", {"form": form, "title": "Edit Post", "post": post})
+    return render(request, "studentforum/create_post.html", {"form": form, "title": "Edit Post", "post": post})
 
 
 @login_required
@@ -197,7 +197,7 @@ def delete_post(request, pk):
         post.delete()
         messages.success(request, "Post deleted successfully!")
         return redirect("home")
-    return render(request, "forum/confirm_delete.html", {"object": post, "type": "Post"})
+    return render(request, "studentforum/confirm_delete.html", {"object": post, "type": "Post"})
 
 
 @login_required
@@ -214,7 +214,7 @@ def edit_comment(request, pk):
             return redirect("post_detail", pk=comment.post.pk)
     else:
         form = CommentForm(instance=comment)
-    return render(request, "forum/edit_comment.html", {"form": form, "comment": comment})
+    return render(request, "studentforum/edit_comment.html", {"form": form, "comment": comment})
 
 
 @login_required
@@ -228,19 +228,19 @@ def delete_comment(request, pk):
         comment.delete()
         messages.success(request, "Comment deleted!")
         return redirect("post_detail", pk=post_pk)
-    return render(request, "forum/confirm_delete.html", {"object": comment, "type": "Comment"})
+    return render(request, "studentforum/confirm_delete.html", {"object": comment, "type": "Comment"})
 
 
 def category_list(request):
     categories = Category.objects.all()
 
-    return render(request, "forum/category_list.html", {"categories": categories})
+    return render(request, "studentforum/category_list.html", {"categories": categories})
 
 
 def category_posts(request, pk):
     category = get_object_or_404(Category, pk=pk)
     posts = Post.objects.filter(category=category)
-    return render(request, "forum/category_posts.html", {"category": category, "posts": posts})
+    return render(request, "studentforum/category_posts.html", {"category": category, "posts": posts})
 
 
 @login_required
@@ -256,7 +256,7 @@ def create_category(request):
             return redirect("category_list")
     else:
         form = CategoryForm()
-    return render(request, "forum/create_category.html", {"form": form})
+    return render(request, "studentforum/create_category.html", {"form": form})
 
 
 @login_required
@@ -273,4 +273,4 @@ def edit_category(request, pk):
             return redirect("category_list")
     else:
         form = CategoryForm(instance=category)
-    return render(request, "forum/create_category.html", {"form": form, "category": category})
+    return render(request, "studentforum/create_category.html", {"form": form, "category": category})

@@ -1,0 +1,19 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Django stuff
+*.log
+local_settings.py
+/db.sqlite3
+
+# Editor files
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# Node dependencies
+node_modules/
