@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import dj_database_url
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-student-forum-secret-key-change-in-production")
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
@@ -49,12 +51,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "studentforum.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if os.environ.get("DATABASE_URL"):
+    # Production (Vercel etc.): Vercel's filesystem is read-only at runtime,
+    # so sqlite cannot be written to there. Point DATABASE_URL at a hosted
+    # Postgres instance (Neon, Supabase, Vercel Postgres, etc).
+    DATABASES = {
+        "default": dj_database_url.parse(
+            os.environ["DATABASE_URL"],
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
-}
+else:
+    # Local development fallback only.
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
