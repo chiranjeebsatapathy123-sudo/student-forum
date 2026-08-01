@@ -1,3 +1,6 @@
+import importlib
+import os
+
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -41,3 +44,17 @@ class BasicViewsTest(TestCase):
         resp = self.client.post(url, {"title": "Hello", "description": "World", "category": category.pk}, follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(Post.objects.filter(title="Hello").exists())
+
+    def test_vercel_uses_writable_sqlite_path(self):
+        os.environ["VERCEL"] = "1"
+        try:
+            import studentforum.settings as settings_module
+
+            reloaded = importlib.reload(settings_module)
+            db_name = reloaded.DATABASES["default"]["NAME"]
+            self.assertTrue(str(db_name).startswith("/tmp"))
+        finally:
+            os.environ.pop("VERCEL", None)
+            import studentforum.settings as settings_module
+
+            importlib.reload(settings_module)
