@@ -17,3 +17,8 @@ Thumbs.db
 
 # Node dependencies
 node_modules/
+
+# Python environments
+venv/
+.venv/
+venv2/
