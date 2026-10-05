@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from forum.models import Post
 from django.utils import timezone
 import datetime
+from django.conf import settings
 
 class Command(BaseCommand):
     help = 'Sends a weekly digest email of top posts to all active users.'
@@ -31,7 +32,7 @@ class Command(BaseCommand):
             send_mail(
                 subject,
                 message_body,
-                'no-reply@studenthub.com',
+                settings.DEFAULT_FROM_EMAIL,
                 recipient_list,
                 fail_silently=False,
             )

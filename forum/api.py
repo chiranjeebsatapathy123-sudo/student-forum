@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description', 'icon', 'color']
+        fields = ['id', 'name', 'description']
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -25,7 +25,7 @@ class PostSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Post
-        fields = ['id', 'user', 'title', 'body', 'post_type', 'category', 'created_date', 'score', 'view_count', 'comments']
+        fields = ['id', 'user', 'title', 'description', 'post_type', 'category', 'created_date', 'score', 'views', 'comments']
 
 # ViewSets
 class PostViewSet(viewsets.ModelViewSet):

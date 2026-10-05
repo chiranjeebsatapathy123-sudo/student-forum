@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="{% if user.is_authenticated and user.profile.theme_preference != 'system' %}{{ user.profile.theme_preference }}{% else %}light{% endif %}">
+<html lang="en" data-bs-theme="{% if user.is_authenticated %}{% if user.profile.theme_preference != 'system' %}{{ user.profile.theme_preference }}{% else %}light{% endif %}{% else %}light{% endif %}">
 {% load static %}
 <head>
     <meta charset="UTF-8">
@@ -29,9 +29,9 @@
         // Check local storage for theme
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
-            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
         } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
         }
     </script>
 </head>
@@ -222,16 +222,16 @@
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
             const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
+            const currentTheme = html.getAttribute('data-bs-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
+            html.setAttribute('data-bs-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             const icon = themeToggle.querySelector('i');
             icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
         });
         
         // Initial icon state
-        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const currentTheme = document.documentElement.getAttribute('data-bs-theme');
         const icon = themeToggle.querySelector('i');
         icon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
     }

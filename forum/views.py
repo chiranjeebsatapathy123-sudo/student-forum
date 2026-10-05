@@ -390,48 +390,89 @@ def ai_copilot(request):
         action = data.get('action')
         content = data.get('content', '')
         
-        # Simple dummy responses for the AI
-        response_text = ""
+        from django.conf import settings
+        from openai import OpenAI
+        
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        
+        prompt = ""
         if action == "improve":
-            response_text = "Here is an improved version: " + content + "\n\nConsider adding more details and context."
+            prompt = f"Improve the following post content. Make it clearer and more professional. Here is the content:\n{content}"
         elif action == "explain":
-            response_text = "**AI Explanation:**\nThis concept revolves around breaking down a complex problem into smaller, manageable parts. Think of it as organizing a large library by first separating books by genre, then by author. It increases efficiency and readability."
+            prompt = f"Explain the following concept simply as if to a student:\n{content}"
         elif action == "summarize":
-            response_text = "**AI Summary:**\n- **Problem:** The original author is struggling with data structures.\n- **Solution:** Community suggested using HashMaps for O(1) lookups.\n- **Takeaway:** Always consider time-complexity when dealing with large datasets."
+            prompt = f"Summarize the following discussion or text in bullet points:\n{content}"
         elif action == "analyze_quality":
-            return JsonResponse({'score': 85, 'checks': ['Clear question', 'Context provided']})
+            prompt = f"Analyze the quality of this post on a scale of 0 to 100. Provide the score as a number on the first line, then 2 brief bullet points of feedback. Post:\n{content}"
         elif action == "mcq":
-            response_text = "**Practice MCQ:**\nWhat is the primary advantage of a HashMap?\n\nA) Sorted data\nB) O(1) average time complexity for lookups\nC) Uses less memory than an array\nD) Allows duplicate keys\n\n*(Correct Answer: B)*"
+            prompt = f"Generate a multiple-choice question based on this topic:\n{content}"
         elif action == "flashcards":
-            response_text = "**Flashcards Generated:**\n\n**Front:** What is Polymorphism?\n**Back:** The ability of different classes to respond to the same method call in their own way.\n\n**Front:** What is Encapsulation?\n**Back:** Bundling data and methods into a single unit (class) and restricting access to some of the object's components."
+            prompt = f"Generate 2 flashcards (Front/Back) to help study this topic:\n{content}"
         elif action == "notes":
-            response_text = "**Revision Notes:**\n\n# Data Structures Review\n1. **Arrays**: Fixed size, O(1) access.\n2. **Linked Lists**: Dynamic size, O(n) access, O(1) insertion/deletion at known points.\n3. **Trees**: Hierarchical data, O(log n) access for balanced BSTs."
+            prompt = f"Generate brief revision notes for this topic:\n{content}"
         elif action == "path":
-            response_text = "**Learning Path Generated:**\n\nStep 1: Introduction to syntax.\nStep 2: Control flow (if/else, loops).\nStep 3: Functions and Scope.\nStep 4: Object-Oriented Programming.\nStep 5: File I/O and Error Handling."
+            prompt = f"Generate a 5-step learning path to master this topic:\n{content}"
         elif action == "chat":
-            # Phase 9: Simple Retrieval-Augmented Generation (RAG) implementation using DB
-            from django.db.models import Q
-            from .models import Post
-            # Search database for context related to the user's message
-            keywords = content.split()[:5]
-            q_objs = Q()
-            for kw in keywords:
-                if len(kw) > 3:
-                    q_objs |= Q(title__icontains=kw) | Q(body__icontains=kw)
-            
-            context_posts = Post.objects.filter(q_objs).distinct()[:3]
-            
-            if context_posts.exists():
-                response_text = f"**Based on the forum's knowledge base:**\nI found some related discussions.\n"
-                for p in context_posts:
-                    response_text += f"- [{p.title}](/post/{p.pk}/)\n"
-                response_text += f"\n*AI summary of these posts:* They generally discuss topics related to '{keywords[0]}'. Let me know if you need more details!"
-            else:
-                response_text = "I couldn't find any specific forum posts about that. But as your AI tutor, I can tell you that this is a great topic to ask the community about!"
+            tavily_context = ""
+            try:
+                from tavily import TavilyClient
+                tavily_client = TavilyClient(api_key=settings.TAVILY_API_KEY)
+                tavily_response = tavily_client.search(query=content, search_depth="basic", max_results=3)
+                if tavily_response.get("results"):
+                    tavily_context = "\n\nHere is some real-time context from the web to help you answer:\n"
+                    for r in tavily_response['results']:
+                        tavily_context += f"- {r.get('title', 'Source')}: {r.get('content', '')}\n"
+            except Exception as e:
+                pass
+                
+            prompt = f"You are an AI Tutor for students. A student asks: {content}{tavily_context}"
         else:
-            response_text = "I am your AI study assistant. How can I help you learn?"
+            return JsonResponse({'result': "I am your AI study assistant. How can I help you learn?"})
             
-        return JsonResponse({'result': response_text})
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful, encouraging AI tutor for university students. Format responses in Markdown."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=300
+            )
+            response_text = response.choices[0].message.content
+            
+            if action == "analyze_quality":
+                lines = response_text.split('\n')
+                score = 50
+                try:
+                    import re
+                    score_match = re.search(r'\d+', lines[0])
+                    if score_match:
+                        score = int(score_match.group())
+                except:
+                    pass
+                checks = [line.replace('- ', '').strip() for line in lines[1:] if line.strip().startswith('-')]
+                return JsonResponse({'score': min(100, score), 'checks': checks[:2]})
+                
+            # If it's chat, let's also append RAG context
+            if action == "chat":
+                from django.db.models import Q
+                from .models import Post
+                keywords = content.split()[:5]
+                q_objs = Q()
+                for kw in keywords:
+                    if len(kw) > 3:
+                        q_objs |= Q(title__icontains=kw) | Q(body__icontains=kw) if hasattr(Post, 'body') else Q(title__icontains=kw) | Q(description__icontains=kw)
+                
+                context_posts = Post.objects.filter(q_objs).distinct()[:3]
+                if context_posts.exists():
+                    response_text += "\n\n**Related Forum Discussions:**\n"
+                    for p in context_posts:
+                        response_text += f"- [{p.title}](/post/{p.pk}/)\n"
+                        
+            return JsonResponse({'result': response_text})
+        except Exception as e:
+            return JsonResponse({'result': f"AI Error: {str(e)}"})
+            
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required

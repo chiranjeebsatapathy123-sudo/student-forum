@@ -5,13 +5,14 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-student-forum-secret-key-change-in-production")
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,.vercel.app").split(",") if host.strip()]
 
 CSRF_TRUSTED_ORIGINS = [origin for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "https://*.vercel.app").split(",") if origin]
 
 INSTALLED_APPS = [
     "daphne",
+    "channels",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -102,7 +103,15 @@ STATICFILES_STORAGE = (
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', 're_test_placeholder')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.resend.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'resend'
+EMAIL_HOST_PASSWORD = RESEND_API_KEY
+DEFAULT_FROM_EMAIL = 'onboarding@resend.dev'
 # Security Settings
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -152,6 +161,10 @@ SPECTACULAR_SETTINGS = {
 # Stripe Configuration
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_placeholder')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
+
+# OpenAI & AI Configuration
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'sk-test-placeholder')
+TAVILY_API_KEY = os.environ.get('TAVILY_API_KEY', 'tvly-test-placeholder')
 
 # AWS S3 Settings
 if os.environ.get('USE_S3') == 'TRUE':
