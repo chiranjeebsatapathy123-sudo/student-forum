@@ -1,0 +1,104 @@
+{% extends 'studentforum/base.html' %}
+{% block title %}Superadmin Analytics - Student Knowledge Hub{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-chart-pie text-primary me-2"></i>Platform Analytics</h2>
+        <div>
+            <button class="btn btn-outline-primary btn-sm"><i class="fas fa-download me-1"></i>Export CSV</button>
+        </div>
+    </div>
+
+    <!-- Top KPIs -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card glass border-0 p-4 shadow-sm text-center hover-lift">
+                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                <h3 class="fw-bold mb-0">{{ total_users }}</h3>
+                <p class="text-muted small mb-0">Total Users</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glass border-0 p-4 shadow-sm text-center hover-lift">
+                <i class="fas fa-comment-dots fa-2x text-success mb-2"></i>
+                <h3 class="fw-bold mb-0">{{ total_posts }}</h3>
+                <p class="text-muted small mb-0">Total Posts</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glass border-0 p-4 shadow-sm text-center hover-lift">
+                <i class="fas fa-graduation-cap fa-2x text-warning mb-2"></i>
+                <h3 class="fw-bold mb-0">{{ total_courses }}</h3>
+                <p class="text-muted small mb-0">Premium Courses</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glass border-0 p-4 shadow-sm text-center hover-lift">
+                <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                <h3 class="fw-bold mb-0">${{ total_revenue }}</h3>
+                <p class="text-muted small mb-0">Platform Revenue</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card glass border-0 shadow-sm p-4 h-100">
+                <h5 class="fw-bold mb-4">User Growth (Last 30 Days)</h5>
+                <canvas id="growthChart" height="100"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card glass border-0 shadow-sm p-4 h-100">
+                <h5 class="fw-bold mb-4">Content Distribution</h5>
+                <canvas id="distributionChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Growth Chart
+    const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+    new Chart(ctxGrowth, {
+        type: 'line',
+        data: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            datasets: [{
+                label: 'New Registrations',
+                data: [12, 19, 35, 52],
+                borderColor: '#4361ee',
+                backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Distribution Chart
+    const ctxDist = document.getElementById('distributionChart').getContext('2d');
+    new Chart(ctxDist, {
+        type: 'doughnut',
+        data: {
+            labels: ['Questions', 'Discussions', 'Polls'],
+            datasets: [{
+                data: [{{ questions_count }}, {{ discussions_count }}, {{ polls_count }}],
+                backgroundColor: ['#4361ee', '#4cc9f0', '#f72585']
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '75%',
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+{% endblock %}

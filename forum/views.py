@@ -593,3 +593,35 @@ def course_list(request):
         "courses": courses,
         "user_enrollments": list(user_enrollments)
     })
+
+@login_required
+def analytics_dashboard(request):
+    if not request.user.is_superuser:
+        messages.error(request, "Superadmin access required.")
+        return redirect("dashboard")
+        
+    from django.contrib.auth.models import User
+    from .models import Post, Course, Enrollment
+    from django.db.models import Sum
+    
+    total_users = User.objects.count()
+    total_posts = Post.objects.count()
+    total_courses = Course.objects.count()
+    
+    # Mock revenue calculation: enrollments * course price
+    # In a real app, this comes from Stripe webhooks/payment intent models
+    total_revenue = sum(e.course.price for e in Enrollment.objects.select_related('course').all())
+    
+    questions = Post.objects.filter(post_type='QUESTION').count()
+    discussions = Post.objects.filter(post_type='DISCUSSION').count()
+    polls = Post.objects.filter(post_type='POLL').count()
+    
+    return render(request, "studentforum/analytics.html", {
+        "total_users": total_users,
+        "total_posts": total_posts,
+        "total_courses": total_courses,
+        "total_revenue": total_revenue,
+        "questions_count": questions,
+        "discussions_count": discussions,
+        "polls_count": polls
+    })

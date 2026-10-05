@@ -75,7 +75,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
                         {% if user.profile.avatar %}
-                            <img src="{{ user.profile.avatar.url }}" class="rounded-circle me-1" width="24" height="24">
+                            <img src="{{ user.profile.avatar.url }}" class="rounded-circle me-1" width="24" height="24" loading="lazy">
                         {% else %}
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-1" style="width: 24px; height: 24px; font-size: 12px;">{{ user.username|make_list|first|upper }}</div>
                         {% endif %}
@@ -87,6 +87,9 @@
                         {% if user.is_staff %}
                         <li><a class="dropdown-item" href="{% url 'moderation_dashboard' %}">Moderation Center</a></li>
                         <li><a class="dropdown-item" href="/admin/">Admin Portal</a></li>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                        <li><a class="dropdown-item text-success fw-bold" href="{% url 'analytics_dashboard' %}"><i class="fas fa-chart-pie me-2"></i>Platform Analytics</a></li>
                         {% endif %}
                         {% if user.profile.is_university_admin %}
                         <li><a class="dropdown-item text-primary fw-bold" href="{% url 'university_dashboard' %}"><i class="fas fa-university me-2"></i>University Portal</a></li>

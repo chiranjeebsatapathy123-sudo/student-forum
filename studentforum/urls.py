@@ -47,6 +47,7 @@ urlpatterns = [
     path("chat/<str:room_name>/", views.chat_room, name="chat_room"),
     path("university/", views.university_dashboard, name="university_dashboard"),
     path("courses/", views.course_list, name="course_list"),
+    path("analytics/", views.analytics_dashboard, name="analytics_dashboard"),
     
     # REST API endpoints
     path("api/v1/", include(router.urls)),
