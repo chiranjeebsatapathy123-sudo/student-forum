@@ -16,6 +16,11 @@ class UserProfile(models.Model):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     following_users = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
     followed_topics = models.CharField(max_length=500, blank=True, help_text="Comma separated topics")
+    
+    # Phase 8: Theming & B2B
+    theme_preference = models.CharField(max_length=20, default='system', choices=(('light', 'Light'), ('dark', 'Dark'), ('system', 'System')))
+    university_name = models.CharField(max_length=200, blank=True)
+    is_university_admin = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
@@ -358,3 +363,16 @@ class InterviewExperience(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s experience at {self.company}"
+
+# ==========================================
+# PHASE 8: REALTIME & B2B
+# ==========================================
+class Message(models.Model):
+    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"From {self.sender} to {self.receiver}"

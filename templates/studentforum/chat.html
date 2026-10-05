@@ -1,0 +1,101 @@
+{% extends 'studentforum/base.html' %}
+{% block title %}Live Chat - Student Knowledge Hub{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row h-100">
+        <!-- Chat List Sidebar -->
+        <div class="col-md-4 mb-4 mb-md-0">
+            <div class="card glass border-0 shadow-sm h-100" style="min-height: 70vh;">
+                <div class="card-header bg-transparent border-0 p-4">
+                    <h5 class="fw-bold mb-0">Messages</h5>
+                </div>
+                <div class="list-group list-group-flush rounded-bottom-4">
+                    <!-- Example Chat Room -->
+                    <a href="{% url 'chat_room' 'general' %}" class="list-group-item list-group-item-action bg-transparent border-bottom border-light p-3 {% if room_name == 'general' %}bg-primary bg-opacity-10{% endif %}">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <h6 class="mb-1 fw-bold"><i class="fas fa-hashtag text-primary me-2"></i>General Discussion</h6>
+                            <small class="text-muted">Live</small>
+                        </div>
+                        <p class="mb-1 small text-muted text-truncate">Join the community chat...</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Chat Area -->
+        <div class="col-md-8">
+            <div class="card glass border-0 shadow-sm h-100" style="min-height: 70vh;">
+                <div class="card-header bg-transparent border-bottom border-light p-4 d-flex align-items-center">
+                    <h5 class="fw-bold mb-0 flex-grow-1"><i class="fas fa-comments text-primary me-2"></i>#{{ room_name }}</h5>
+                    <span class="badge bg-success rounded-pill px-3 shadow-sm"><i class="fas fa-circle me-1 small"></i>Online</span>
+                </div>
+                <div class="card-body p-4 d-flex flex-column" style="height: 50vh; overflow-y: auto;" id="chat-log">
+                    <div class="text-center text-muted small mb-4">Welcome to the start of the {{ room_name }} channel.</div>
+                </div>
+                <div class="card-footer bg-transparent border-top border-light p-3">
+                    <div class="input-group">
+                        <input id="chat-message-input" type="text" class="form-control rounded-start-pill border-0 bg-light p-3" placeholder="Type your message...">
+                        <button id="chat-message-submit" class="btn btn-primary rounded-end-pill px-4"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const roomName = "{{ room_name }}";
+    const userName = "{{ user.username }}";
+    
+    // In production, use wss:// 
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(
+        wsScheme + '://' + window.location.host + '/ws/chat/' + roomName + '/'
+    );
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const log = document.querySelector('#chat-log');
+        const isSelf = data.username === userName;
+        
+        const alignment = isSelf ? 'justify-content-end' : 'justify-content-start';
+        const bgColor = isSelf ? 'bg-primary text-white' : 'bg-light text-dark';
+        
+        const html = `
+            <div class="d-flex ${alignment} mb-3">
+                <div style="max-width: 75%;">
+                    ${!isSelf ? `<div class="small fw-bold text-muted mb-1 ms-1">${data.username}</div>` : ''}
+                    <div class="${bgColor} p-3 rounded-4 shadow-sm" style="border-radius: ${isSelf ? '1rem 1rem 0 1rem' : '1rem 1rem 1rem 0'};">
+                        ${data.message}
+                    </div>
+                </div>
+            </div>
+        `;
+        log.insertAdjacentHTML('beforeend', html);
+        log.scrollTop = log.scrollHeight;
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value.trim();
+        if(message) {
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'username': userName
+            }));
+            messageInputDom.value = '';
+        }
+    };
+</script>
+{% endblock %}

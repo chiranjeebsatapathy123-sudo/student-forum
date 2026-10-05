@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="{% if user.is_authenticated and user.profile.theme_preference != 'system' %}{{ user.profile.theme_preference }}{% else %}light{% endif %}">
 {% load static %}
 <head>
     <meta charset="UTF-8">
@@ -54,6 +54,7 @@
                 <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'project_list' %}">Projects</a></li>
                 <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'careers_portal' %}">Careers</a></li>
                 <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'leaderboard' %}">Leaderboard</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'chat_room' 'general' %}">Live Chat</a></li>
                 <li class="nav-item"><a class="nav-link fw-medium text-primary" href="{% url 'create_post' %}"><i class="fas fa-plus me-1"></i>Ask Question</a></li>
                 {% endif %}
             </ul>
@@ -85,6 +86,9 @@
                         {% if user.is_staff %}
                         <li><a class="dropdown-item" href="{% url 'moderation_dashboard' %}">Moderation Center</a></li>
                         <li><a class="dropdown-item" href="/admin/">Admin Portal</a></li>
+                        {% endif %}
+                        {% if user.profile.is_university_admin %}
+                        <li><a class="dropdown-item text-primary fw-bold" href="{% url 'university_dashboard' %}"><i class="fas fa-university me-2"></i>University Portal</a></li>
                         {% endif %}
                         <li><hr class="dropdown-divider border-secondary opacity-25"></li>
                         <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Logout</a></li>

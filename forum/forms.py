@@ -73,7 +73,7 @@ from .models import UserProfile
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['department', 'course', 'year', 'skills', 'interests', 'bio', 'github', 'linkedin', 'avatar']
+        fields = ['department', 'course', 'year', 'skills', 'interests', 'bio', 'github', 'linkedin', 'avatar', 'theme_preference', 'university_name']
         widgets = {
             'department': forms.TextInput(attrs={'class': 'form-control'}),
             'course': forms.TextInput(attrs={'class': 'form-control'}),
@@ -84,4 +84,6 @@ class UserProfileForm(forms.ModelForm):
             'github': forms.URLInput(attrs={'class': 'form-control'}),
             'linkedin': forms.URLInput(attrs={'class': 'form-control'}),
             'avatar': forms.FileInput(attrs={'class': 'form-control'}),
+            'theme_preference': forms.Select(attrs={'class': 'form-control'}),
+            'university_name': forms.TextInput(attrs={'class': 'form-control'}),
         }

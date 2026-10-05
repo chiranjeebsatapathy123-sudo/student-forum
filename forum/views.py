@@ -541,3 +541,22 @@ def leaderboard(request):
     from .models import UserProfile
     top_users = UserProfile.objects.all().order_by('-reputation')[:20]
     return render(request, "studentforum/leaderboard.html", {"top_users": top_users})
+
+@login_required
+def chat_room(request, room_name):
+    return render(request, "studentforum/chat.html", {"room_name": room_name})
+
+@login_required
+def university_dashboard(request):
+    if not request.user.profile.is_university_admin:
+        messages.error(request, "You are not authorized to view the University Admin Portal.")
+        return redirect("dashboard")
+        
+    from .models import UserProfile
+    uni_students = UserProfile.objects.filter(university_name=request.user.profile.university_name)
+    total_students = uni_students.count()
+    return render(request, "studentforum/university_dashboard.html", {
+        "uni_students": uni_students,
+        "total_students": total_students,
+        "university_name": request.user.profile.university_name
+    })
