@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "storages",
     "rest_framework",
+    "drf_spectacular",
     "forum",
 ]
 
@@ -129,6 +130,7 @@ CHANNEL_LAYERS = {
 
 # REST Framework settings
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
@@ -139,6 +141,17 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Student Forum API',
+    'DESCRIPTION': 'API documentation for the Student Knowledge Hub',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+# Stripe Configuration
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_placeholder')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
 
 # AWS S3 Settings
 if os.environ.get('USE_S3') == 'TRUE':

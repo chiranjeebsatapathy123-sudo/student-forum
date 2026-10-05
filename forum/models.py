@@ -376,3 +376,30 @@ class Message(models.Model):
 
     def __str__(self):
         return f"From {self.sender} to {self.receiver}"
+
+# ==========================================
+# PHASE 9: MONETIZATION & E-COMMERCE
+# ==========================================
+class Course(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    instructor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="courses")
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
+    thumbnail_url = models.URLField(blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    stripe_product_id = models.CharField(max_length=100, blank=True)
+    
+    def __str__(self):
+        return self.title
+
+class Enrollment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="enrollments")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="students")
+    enrolled_date = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        unique_together = ('user', 'course')
+        
+    def __str__(self):
+        return f"{self.user.username} enrolled in {self.course.title}"

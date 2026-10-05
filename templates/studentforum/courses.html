@@ -1,0 +1,59 @@
+{% extends 'studentforum/base.html' %}
+{% block title %}Premium Courses - Student Knowledge Hub{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold"><i class="fas fa-graduation-cap text-primary me-2"></i>Premium Courses</h2>
+            <p class="text-muted">Master topics deeply with premium courses taught by verified alumni and professors.</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4"><i class="fas fa-plus me-2"></i>Create Course</button>
+    </div>
+
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card glass border-0 h-100 shadow-sm hover-lift overflow-hidden">
+                <div class="position-relative">
+                    {% if course.thumbnail_url %}
+                    <img src="{{ course.thumbnail_url }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-video fa-3x text-muted opacity-50"></i>
+                    </div>
+                    {% endif %}
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge bg-white text-dark rounded-pill shadow-sm fs-6 px-3 py-2">${{ course.price }}</span>
+                    </div>
+                </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <h5 class="fw-bold mb-2">{{ course.title }}</h5>
+                    <div class="text-muted small mb-3">
+                        <i class="fas fa-chalkboard-teacher me-1"></i>{{ course.instructor.get_full_name|default:course.instructor.username }}
+                    </div>
+                    <p class="small text-muted flex-grow-1">{{ course.description|truncatewords:20 }}</p>
+                    
+                    <div class="mt-auto pt-3 border-top border-light">
+                        {% if course.id in user_enrollments %}
+                        <a href="#" class="btn btn-success w-100 rounded-pill"><i class="fas fa-play-circle me-2"></i>Continue Learning</a>
+                        {% else %}
+                        <button class="btn btn-primary w-100 rounded-pill" onclick="alert('Stripe checkout would open here!')">
+                            <i class="fas fa-shopping-cart me-2"></i>Enroll Now
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="glass border-0 rounded-4 p-5 text-center text-muted">
+                <i class="fas fa-box-open fa-4x opacity-25 mb-4"></i>
+                <h4 class="fw-bold">No Courses Available</h4>
+                <p>Be the first to publish a premium course to the platform!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

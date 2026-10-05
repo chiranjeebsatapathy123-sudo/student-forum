@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from forum import views, api
 
 # DRF Router setup
@@ -45,7 +46,12 @@ urlpatterns = [
     path("leaderboard/", views.leaderboard, name="leaderboard"),
     path("chat/<str:room_name>/", views.chat_room, name="chat_room"),
     path("university/", views.university_dashboard, name="university_dashboard"),
+    path("courses/", views.course_list, name="course_list"),
     
     # REST API endpoints
     path("api/v1/", include(router.urls)),
+    
+    # OpenAPI Docs
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]

@@ -408,6 +408,26 @@ def ai_copilot(request):
             response_text = "**Revision Notes:**\n\n# Data Structures Review\n1. **Arrays**: Fixed size, O(1) access.\n2. **Linked Lists**: Dynamic size, O(n) access, O(1) insertion/deletion at known points.\n3. **Trees**: Hierarchical data, O(log n) access for balanced BSTs."
         elif action == "path":
             response_text = "**Learning Path Generated:**\n\nStep 1: Introduction to syntax.\nStep 2: Control flow (if/else, loops).\nStep 3: Functions and Scope.\nStep 4: Object-Oriented Programming.\nStep 5: File I/O and Error Handling."
+        elif action == "chat":
+            # Phase 9: Simple Retrieval-Augmented Generation (RAG) implementation using DB
+            from django.db.models import Q
+            from .models import Post
+            # Search database for context related to the user's message
+            keywords = content.split()[:5]
+            q_objs = Q()
+            for kw in keywords:
+                if len(kw) > 3:
+                    q_objs |= Q(title__icontains=kw) | Q(body__icontains=kw)
+            
+            context_posts = Post.objects.filter(q_objs).distinct()[:3]
+            
+            if context_posts.exists():
+                response_text = f"**Based on the forum's knowledge base:**\nI found some related discussions.\n"
+                for p in context_posts:
+                    response_text += f"- [{p.title}](/post/{p.pk}/)\n"
+                response_text += f"\n*AI summary of these posts:* They generally discuss topics related to '{keywords[0]}'. Let me know if you need more details!"
+            else:
+                response_text = "I couldn't find any specific forum posts about that. But as your AI tutor, I can tell you that this is a great topic to ask the community about!"
         else:
             response_text = "I am your AI study assistant. How can I help you learn?"
             
@@ -559,4 +579,17 @@ def university_dashboard(request):
         "uni_students": uni_students,
         "total_students": total_students,
         "university_name": request.user.profile.university_name
+    })
+
+@login_required
+def course_list(request):
+    from .models import Course, Enrollment
+    courses = Course.objects.all().order_by('-created_date')
+    user_enrollments = []
+    if request.user.is_authenticated:
+        user_enrollments = Enrollment.objects.filter(user=request.user, is_active=True).values_list('course_id', flat=True)
+    
+    return render(request, "studentforum/courses.html", {
+        "courses": courses,
+        "user_enrollments": list(user_enrollments)
     })
