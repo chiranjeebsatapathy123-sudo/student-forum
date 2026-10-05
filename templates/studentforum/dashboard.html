@@ -1,0 +1,426 @@
+{% extends 'studentforum/base.html' %}
+{% block title %}Dashboard - Student Knowledge Hub{% endblock %}
+{% block content %}
+
+<div class="page-header py-5 mb-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--bg), rgba(79,70,229,0.1)); border-bottom: 1px solid var(--border);">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 80% 20%, rgba(139,92,246,0.15) 0%, transparent 40%); z-index: 0;"></div>
+    <div class="container position-relative" style="z-index: 1;">
+        <div class="d-flex align-items-center gap-4">
+            <div class="position-relative">
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" class="rounded-circle shadow-lg border border-4 border-white" width="100" height="100" style="object-fit: cover;">
+                {% else %}
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-lg border border-4 border-white" style="width: 100px; height: 100px; font-size: 40px; font-weight: bold;">
+                        {{ user.username|make_list|first|upper }}
+                    </div>
+                {% endif %}
+                <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle" style="width: 24px; height: 24px;" title="Online"></span>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-1" style="color: var(--text);">What are you learning today, {{ user.first_name|default:user.username }}?</h2>
+                <p class="text-muted mb-0 fw-medium d-flex align-items-center">
+                    <i class="fas fa-graduation-cap me-2 text-primary"></i>{{ user.profile.department|default:"Student" }} 
+                    {% if user.profile.year %}<span class="mx-2">•</span> Year {{ user.profile.year }}{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Stats Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card glass-elevated border-0 h-100 p-4 text-center" style="transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d;" onmouseover="this.style.transform='translateY(-10px) rotateX(5deg) rotateY(-5deg)'" onmouseout="this.style.transform='translateY(0) rotateX(0) rotateY(0)'">
+                <div class="text-primary mb-3"><i class="fas fa-question-circle fa-2x opacity-75"></i></div>
+                <h2 class="fw-bold mb-1">{{ total_posts }}</h2>
+                <div class="text-muted small fw-medium text-uppercase tracking-wider">Questions</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glass-elevated border-0 h-100 p-4 text-center" style="transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d;" onmouseover="this.style.transform='translateY(-10px) rotateX(5deg) rotateY(-5deg)'" onmouseout="this.style.transform='translateY(0) rotateX(0) rotateY(0)'">
+                <div class="text-accent mb-3"><i class="fas fa-comment-dots fa-2x opacity-75"></i></div>
+                <h2 class="fw-bold mb-1">{{ total_comments }}</h2>
+                <div class="text-muted small fw-medium text-uppercase tracking-wider">Answers</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glass-elevated border-0 h-100 p-4 text-center" style="transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d;" onmouseover="this.style.transform='translateY(-10px) rotateX(5deg) rotateY(5deg)'" onmouseout="this.style.transform='translateY(0) rotateX(0) rotateY(0)'">
+                <div class="text-warning mb-3"><i class="fas fa-star fa-2x opacity-75"></i></div>
+                <h2 class="fw-bold mb-1">{{ user.profile.reputation }}</h2>
+                <div class="text-muted small fw-medium text-uppercase tracking-wider">Reputation</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glass-elevated border-0 h-100 p-4 text-center" style="transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d;" onmouseover="this.style.transform='translateY(-10px) rotateX(5deg) rotateY(5deg)'" onmouseout="this.style.transform='translateY(0) rotateX(0) rotateY(0)'">
+                <div class="text-success mb-3"><i class="fas fa-check-double fa-2x opacity-75"></i></div>
+                <h2 class="fw-bold mb-1">{{ user.comments.filter|length|default:"0" }}</h2> <!-- In a real app this would be a real query for accepted answers -->
+                <div class="text-muted small fw-medium text-uppercase tracking-wider">Accepted</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Feed -->
+        <div class="col-lg-8">
+            <!-- Daily Digest -->
+            <div class="card glass-elevated border-0 mb-4 p-4 position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(168,85,247,0.05));">
+                <div class="position-absolute top-0 end-0 opacity-10 p-3"><i class="fas fa-sun fa-4x text-warning"></i></div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-newspaper me-2"></i>Daily Learning Digest</h6>
+                    <span class="badge bg-white text-muted rounded-pill shadow-sm">Today</span>
+                </div>
+                <p class="mb-3" style="font-size: 0.95rem;">Good evening 👋 Here's your quick learning summary and recommendations for today.</p>
+                <div class="row g-3 mb-3">
+                    <div class="col-4">
+                        <div class="p-2 bg-white rounded-3 text-center shadow-sm h-100">
+                            <div class="fw-bold fs-4 text-primary">3</div>
+                            <div class="small text-muted" style="font-size: 0.75rem;">Discussions Read</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-white rounded-3 text-center shadow-sm h-100">
+                            <div class="fw-bold fs-4 text-accent">2</div>
+                            <div class="small text-muted" style="font-size: 0.75rem;">Answers Given</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-white rounded-3 text-center shadow-sm h-100">
+                            <div class="fw-bold fs-4 text-success">1</div>
+                            <div class="small text-muted" style="font-size: 0.75rem;">Topic Explored</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 bg-white p-3 rounded-3 shadow-sm border border-secondary border-opacity-10">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; flex-shrink: 0;">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <div>
+                        <div class="small text-muted fw-bold mb-1">Recommended Next:</div>
+                        <a href="{% url 'home' %}" class="fw-bold text-decoration-none d-block text-truncate" style="color: var(--text); font-size: 0.9rem;">Difference between BFS and DFS</a>
+                    </div>
+                </div>
+            </div>
+            <ul class="nav nav-pills mb-4 glass p-2 rounded-pill d-inline-flex gap-2" id="dashboardTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#my-questions" type="button" role="tab">My Questions</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#my-answers" type="button" role="tab">My Answers</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#saved" type="button" role="tab">Saved</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="dashboardTabsContent">
+                <!-- My Questions Tab -->
+                <div class="tab-pane fade show active" id="my-questions" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">Recent Questions</h5>
+                        <a href="{% url 'create_post' %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm"><i class="fas fa-plus me-1"></i>New Question</a>
+                    </div>
+                    
+                    {% for post in recent_posts %}
+                    <div class="card glass border-0 mb-3 hover-lift">
+                        <div class="card-body p-4 d-flex justify-content-between align-items-center gap-3">
+                            <div class="flex-grow-1 min-w-0">
+                                <h6 class="fw-bold mb-1 text-truncate">
+                                    <a href="{% url 'post_detail' post.pk %}" class="text-decoration-none" style="color: var(--text);">{{ post.title }}</a>
+                                </h6>
+                                <div class="text-muted small d-flex align-items-center gap-3">
+                                    <span><i class="far fa-calendar me-1"></i>{{ post.created_date|date:"M d, Y" }}</span>
+                                    <span><i class="far fa-comment me-1"></i>{{ post.comment_count|default:"0" }} answers</span>
+                                    <span><i class="fas fa-arrow-up me-1"></i>{{ post.score }}</span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 flex-shrink-0">
+                                <a href="{% url 'edit_post' post.pk %}" class="btn btn-sm btn-outline-warning rounded-circle" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                <a href="{% url 'delete_post' post.pk %}" class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Delete"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="glass border-0 rounded-4 p-5 text-center text-muted">
+                        <i class="fas fa-inbox fa-3x opacity-25 mb-3"></i>
+                        <h5>No questions yet</h5>
+                        <p class="mb-4">You haven't asked any questions yet.</p>
+                        <a href="{% url 'create_post' %}" class="btn btn-primary rounded-pill px-4">Ask your first question</a>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- My Answers Tab -->
+                <div class="tab-pane fade" id="my-answers" role="tabpanel">
+                    <h5 class="fw-bold mb-4">Recent Answers</h5>
+                    {% for comment in recent_comments %}
+                    <div class="card glass border-0 mb-3 hover-lift">
+                        <div class="card-body p-4 d-flex justify-content-between align-items-center gap-3">
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="small fw-bold text-primary mb-1 text-truncate">On: <a href="{% url 'post_detail' comment.post.pk %}" class="text-decoration-none text-primary">{{ comment.post.title }}</a></div>
+                                <div class="text-muted mb-2 text-truncate">{{ comment.comment_text }}</div>
+                                <div class="text-muted small d-flex align-items-center gap-3">
+                                    <span><i class="far fa-calendar me-1"></i>{{ comment.created_date|date:"M d, Y" }}</span>
+                                    <span><i class="fas fa-arrow-up me-1"></i>{{ comment.score }}</span>
+                                    {% if comment.is_accepted %}
+                                    <span class="text-success"><i class="fas fa-check-circle me-1"></i>Accepted</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 flex-shrink-0">
+                                <a href="{% url 'edit_comment' comment.pk %}" class="btn btn-sm btn-outline-warning rounded-circle" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                <a href="{% url 'delete_comment' comment.pk %}" class="btn btn-sm btn-outline-danger rounded-circle" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Delete"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="glass border-0 rounded-4 p-5 text-center text-muted">
+                        <i class="fas fa-comment-slash fa-3x opacity-25 mb-3"></i>
+                        <h5>No answers yet</h5>
+                        <p>Share your knowledge by answering questions.</p>
+                        <a href="{% url 'home' %}?filter=unanswered" class="btn btn-outline-primary rounded-pill px-4 mt-2">Find questions to answer</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Saved Tab -->
+                <div class="tab-pane fade" id="saved" role="tabpanel">
+                    <h5 class="fw-bold mb-4">Saved Bookmarks</h5>
+                    {% for bookmark in user.bookmarks.all %}
+                    <div class="card glass border-0 mb-3 hover-lift">
+                        <div class="card-body p-4 d-flex justify-content-between align-items-center gap-3">
+                            <div class="flex-grow-1 min-w-0">
+                                <h6 class="fw-bold mb-1 text-truncate">
+                                    <a href="{% url 'post_detail' bookmark.post.pk %}" class="text-decoration-none" style="color: var(--text);">{{ bookmark.post.title }}</a>
+                                </h6>
+                                <div class="text-muted small">
+                                    <span><i class="fas fa-user-circle me-1"></i>{{ bookmark.post.user.username }}</span>
+                                    <span class="mx-2">•</span>
+                                    <span><i class="far fa-bookmark me-1"></i>Saved on {{ bookmark.created_at|date:"M d, Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="glass border-0 rounded-4 p-5 text-center text-muted">
+                        <i class="far fa-bookmark fa-3x opacity-25 mb-3"></i>
+                        <h5>No saved posts</h5>
+                        <p>Bookmark helpful discussions to find them easily later.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            
+            <!-- Learning Streak Graph -->
+            <div class="card glass border-0 mb-4 p-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-fire text-danger me-2"></i>Learning Streak</h6>
+                <div class="d-flex flex-wrap gap-1 mb-2" id="streak-graph">
+                    <!-- Javascript will populate this with github style boxes -->
+                </div>
+                <div class="d-flex justify-content-between small text-muted">
+                    <span>Less</span>
+                    <div class="d-flex gap-1">
+                        <div style="width: 10px; height: 10px; background: rgba(99, 102, 241, 0.1); border-radius: 2px;"></div>
+                        <div style="width: 10px; height: 10px; background: rgba(99, 102, 241, 0.4); border-radius: 2px;"></div>
+                        <div style="width: 10px; height: 10px; background: rgba(99, 102, 241, 0.7); border-radius: 2px;"></div>
+                        <div style="width: 10px; height: 10px; background: rgba(99, 102, 241, 1); border-radius: 2px;"></div>
+                    </div>
+                    <span>More</span>
+                </div>
+            </div>
+
+            <!-- Recommended Discussions -->
+            <div class="card glass border-0 mb-4 p-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-compass text-primary me-2"></i>Recommended For You</h6>
+                <p class="small text-muted mb-3">Based on your activity and interests.</p>
+                <div class="d-flex flex-column gap-3">
+                    <a href="{% url 'home' %}" class="text-decoration-none">
+                        <div class="fw-bold small text-primary text-truncate">How to optimize Django queries?</div>
+                        <div class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-users me-1"></i>12 answers • <i class="fas fa-arrow-up me-1"></i>45</div>
+                    </a>
+                    <a href="{% url 'home' %}" class="text-decoration-none">
+                        <div class="fw-bold small text-primary text-truncate">React useEffect infinite loop</div>
+                        <div class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-users me-1"></i>8 answers • <i class="fas fa-arrow-up me-1"></i>21</div>
+                    </a>
+                    <a href="{% url 'home' %}" class="text-decoration-none">
+                        <div class="fw-bold small text-primary text-truncate">Understanding Python Decorators</div>
+                        <div class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-users me-1"></i>15 answers • <i class="fas fa-arrow-up me-1"></i>88</div>
+                    </a>
+                </div>
+            </div>
+            <!-- Skill Progression -->
+            <div class="card glass border-0 mb-4 p-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-chart-line text-success me-2"></i>Activity-based Progress</h6>
+                <p class="small text-muted mb-3">Topic progression based on your community interactions.</p>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1 fw-bold">
+                        <span>Python</span>
+                        <span class="text-primary">80%</span>
+                    </div>
+                    <div class="progress bg-secondary bg-opacity-25" style="height: 6px; border-radius: 3px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 80%; border-radius: 3px;"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1 fw-bold">
+                        <span>Data Structures</span>
+                        <span class="text-accent">60%</span>
+                    </div>
+                    <div class="progress bg-secondary bg-opacity-25" style="height: 6px; border-radius: 3px;">
+                        <div class="progress-bar" role="progressbar" style="width: 60%; background-color: var(--accent); border-radius: 3px;"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-1">
+                    <div class="d-flex justify-content-between small mb-1 fw-bold">
+                        <span>Machine Learning</span>
+                        <span class="text-warning">40%</span>
+                    </div>
+                    <div class="progress bg-secondary bg-opacity-25" style="height: 6px; border-radius: 3px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 40%; border-radius: 3px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Goals -->
+            <div class="card glass border-0 mb-4 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-bullseye text-danger me-2"></i>Learning Goals</h6>
+                    <button class="btn btn-sm btn-link p-0 text-muted" title="Add Goal"><i class="fas fa-plus"></i></button>
+                </div>
+                
+                <div class="p-3 bg-light rounded-3 mb-2 hover-lift">
+                    <div class="fw-bold small mb-1">Learn Django ORM</div>
+                    <div class="progress bg-secondary bg-opacity-25 mb-2" style="height: 4px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 75%;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted" style="font-size: 0.75rem;">
+                        <span>Step 3 of 4</span>
+                        <span class="text-success fw-bold">On track</span>
+                    </div>
+                </div>
+                
+                <div class="p-3 bg-light rounded-3 hover-lift">
+                    <div class="fw-bold small mb-1">Prepare for Interviews</div>
+                    <div class="progress bg-secondary bg-opacity-25 mb-2" style="height: 4px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 25%;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted" style="font-size: 0.75rem;">
+                        <span>Step 1 of 5</span>
+                        <span class="text-muted">Started</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievements -->
+            <div class="card glass border-0 mb-4 p-4">
+                <h6 class="fw-bold mb-4"><i class="fas fa-medal text-warning me-2"></i>Achievements</h6>
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-warning bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; color: var(--warning);">
+                            <i class="fas fa-seedling"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold small">First Question</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Asked your first question</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; color: var(--primary);">
+                            <i class="fas fa-hands-helping"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold small">Helpful Contributor</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Received 10+ upvotes on an answer</div>
+                        </div>
+                    </div>
+                    {% if user.profile.reputation > 50 %}
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-success bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; color: var(--success);">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold small">Rising Star</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Reached 50 reputation</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="d-flex align-items-center gap-3 opacity-50" style="filter: grayscale(1);">
+                        <div class="rounded-circle bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; color: var(--text);">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold small">Rising Star</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Reach 50 reputation to unlock</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tags -->
+            {% if user.profile.skills or user.profile.interests %}
+            <div class="card glass border-0 p-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-tags text-accent me-2"></i>Skills & Interests</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% if user.profile.skills %}
+                        {% for skill in user.profile.skills.split %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">{{ skill }}</span>
+                        {% endfor %}
+                    {% endif %}
+                    {% if user.profile.interests %}
+                        {% for interest in user.profile.interests.split %}
+                            <span class="badge bg-accent bg-opacity-10 text-accent border border-accent border-opacity-25 px-2 py-1">{{ interest }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg) !important;
+    }
+    .tracking-wider {
+        letter-spacing: 0.05em;
+    }
+    .streak-box {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        background: rgba(99, 102, 241, 0.1);
+    }
+    .streak-1 { background: rgba(99, 102, 241, 0.4); }
+    .streak-2 { background: rgba(99, 102, 241, 0.7); }
+    .streak-3 { background: rgba(99, 102, 241, 1); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const graph = document.getElementById('streak-graph');
+    if (graph) {
+        let html = '';
+        // generate last 60 days
+        for(let i=0; i<60; i++) {
+            const val = Math.floor(Math.random() * 10) > 6 ? Math.floor(Math.random() * 3) + 1 : 0;
+            const cls = val > 0 ? `streak-${val}` : '';
+            html += `<div class="streak-box ${cls}" title="${val} contributions on this day"></div>`;
+        }
+        graph.innerHTML = html;
+    }
+});
+</script>
+{% endblock %}

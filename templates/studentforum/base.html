@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}Student Knowledge Hub - The AI-powered community for students to learn, ask questions, and share knowledge.{% endblock %}">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="{% block og_title %}Student Knowledge Hub{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}The AI-powered community for students to learn, ask questions, and share knowledge.{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    
+    <title>{% block title %}Student Knowledge Hub{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/site.css' %}" rel="stylesheet">
+    <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+    <!-- Highlight.js for code formatting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.net.min.js"></script>
+    <script>
+        // Check local storage for theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg glass sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+            <span class="h5 mb-0 fw-bold">Student<span style="color: var(--primary)">Hub</span></span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <i class="fas fa-bars text-muted"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto ms-4">
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'home' %}">Explore</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'community_list' %}">Communities</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'category_list' %}">Topics</a></li>
+                {% if user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'project_list' %}">Projects</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium text-primary" href="{% url 'create_post' %}"><i class="fas fa-plus me-1"></i>Ask Question</a></li>
+                {% endif %}
+            </ul>
+            <ul class="navbar-nav align-items-center">
+                <li class="nav-item me-3">
+                    <button class="btn btn-sm btn-outline-secondary border-0" id="theme-toggle" title="Toggle Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item me-3">
+                    <a class="nav-link" href="#" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                    </a>
+                </li>
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                        {% if user.profile.avatar %}
+                            <img src="{{ user.profile.avatar.url }}" class="rounded-circle me-1" width="24" height="24">
+                        {% else %}
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-1" style="width: 24px; height: 24px; font-size: 12px;">{{ user.username|make_list|first|upper }}</div>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end glass shadow-lg border-0 mt-2">
+                        <li><a class="dropdown-item" href="{% url 'edit_profile' %}">Profile</a></li>
+                        <li><a class="dropdown-item" href="{% url 'practice' %}">Practice Mode</a></li>
+                        <li><a class="dropdown-item" href="{% url 'change_password' %}">Settings</a></li>
+                        {% if user.is_staff %}
+                        <li><a class="dropdown-item" href="{% url 'moderation_dashboard' %}">Moderation Center</a></li>
+                        <li><a class="dropdown-item" href="/admin/">Admin Portal</a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider border-secondary opacity-25"></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Logout</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'login' %}">Login</a></li>
+                <li class="nav-item"><a class="btn btn-primary btn-sm ms-2 rounded-pill px-4" href="{% url 'register' %}">Join Now</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4" aria-live="polite" aria-atomic="true" style="position: relative; z-index: 1050;">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} glass-elevated border-0 alert-dismissible fade show shadow-sm" role="status" data-autodismiss="true">
+        <i class="fas fa-info-circle me-2 text-{{ message.tags }}"></i>
+        <span class="alert-message fw-medium">{{ message }}</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+
+<main style="min-height: calc(100vh - 160px);">
+{% block content %}{% endblock %}
+</main>
+
+<footer class="mt-auto py-4 glass border-0 border-top mt-5">
+    <div class="container text-center text-muted">
+        <p class="mb-1 fw-medium"><i class="fas fa-graduation-cap me-2 text-primary"></i>Student Knowledge Hub</p>
+        <small>&copy; {% now "Y" %} All rights reserved.</small>
+    </div>
+</footer>
+
+<!-- AI Copilot FAB -->
+{% if user.is_authenticated %}
+<div style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+    <button class="btn btn-primary rounded-circle shadow-lg" id="ai-fab" style="width: 60px; height: 60px; font-size: 24px; background: linear-gradient(135deg, var(--primary), var(--accent)); border: none;" data-bs-toggle="modal" data-bs-target="#aiModal">
+        <i class="fas fa-sparkles"></i>
+    </button>
+</div>
+
+<!-- AI Copilot Modal -->
+<div class="modal fade" id="aiModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-elevated border-0 rounded-4">
+      <div class="modal-header border-bottom border-secondary border-opacity-10">
+        <h5 class="modal-title fw-bold"><i class="fas fa-sparkles text-primary me-2"></i>AI Copilot</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="text-muted mb-4">How can I assist you with your learning today?</p>
+        <div class="d-grid gap-2">
+            <button class="btn btn-outline-primary text-start rounded-pill ai-action" data-action="improve"><i class="fas fa-magic me-2"></i>Improve my current post</button>
+            <button class="btn btn-outline-primary text-start rounded-pill ai-action" data-action="explain"><i class="fas fa-lightbulb me-2"></i>Explain a concept</button>
+            <button class="btn btn-outline-primary text-start rounded-pill ai-action" data-action="summarize"><i class="fas fa-compress-alt me-2"></i>Summarize this page</button>
+        </div>
+        <div id="ai-response" class="mt-4 p-3 bg-secondary bg-opacity-10 rounded-3 d-none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Toast Container -->
+<div aria-live="polite" aria-atomic="true" class="position-relative">
+    <div class="toast-container position-fixed bottom-0 start-0 p-3" id="toast-container" style="z-index: 1080;">
+    </div>
+</div>
+
+<!-- Command Palette Modal -->
+<div class="modal fade" id="commandPalette" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content glass-elevated border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-body p-0">
+        <div class="d-flex align-items-center p-3 border-bottom border-secondary border-opacity-10">
+            <i class="fas fa-search text-muted me-3 fs-5"></i>
+            <input type="text" id="cmd-input" class="form-control form-control-lg border-0 shadow-none bg-transparent text-white" placeholder="Type a command or search... (e.g. 'new', 'dark')">
+            <span class="badge bg-secondary bg-opacity-25 text-muted ms-2">Esc</span>
+        </div>
+        <div class="p-2" id="cmd-results" style="max-height: 300px; overflow-y: auto;">
+            <div class="cmd-item p-3 rounded-3 d-flex align-items-center cursor-pointer mb-1" onclick="window.location.href='{% url 'create_post' %}'">
+                <i class="fas fa-plus-circle text-primary me-3"></i>
+                <div>
+                    <div class="fw-bold">Create Discussion</div>
+                    <div class="small text-muted">Start a new topic</div>
+                </div>
+                <div class="ms-auto text-muted small">Action</div>
+            </div>
+            <div class="cmd-item p-3 rounded-3 d-flex align-items-center cursor-pointer mb-1" onclick="document.getElementById('theme-toggle').click(); bootstrap.Modal.getInstance(document.getElementById('commandPalette')).hide();">
+                <i class="fas fa-adjust text-accent me-3"></i>
+                <div>
+                    <div class="fw-bold">Toggle Dark Mode</div>
+                    <div class="small text-muted">Switch appearance</div>
+                </div>
+                <div class="ms-auto text-muted small">Action</div>
+            </div>
+            {% if user.is_authenticated %}
+            <div class="cmd-item p-3 rounded-3 d-flex align-items-center cursor-pointer mb-1" onclick="window.location.href='{% url 'dashboard' %}'">
+                <i class="fas fa-tachometer-alt text-success me-3"></i>
+                <div>
+                    <div class="fw-bold">Go to Dashboard</div>
+                    <div class="small text-muted">View your profile and stats</div>
+                </div>
+                <div class="ms-auto text-muted small">Navigation</div>
+            </div>
+            <div class="cmd-item p-3 rounded-3 d-flex align-items-center cursor-pointer mb-1" onclick="window.location.href='{% url 'practice' %}'">
+                <i class="fas fa-dumbbell text-warning me-3"></i>
+                <div>
+                    <div class="fw-bold">Practice Mode</div>
+                    <div class="small text-muted">AI-generated MCQs and questions</div>
+                </div>
+                <div class="ms-auto text-muted small">Learn</div>
+            </div>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Theme toggler
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            const icon = themeToggle.querySelector('i');
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        });
+        
+        // Initial icon state
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const icon = themeToggle.querySelector('i');
+        icon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    }
+
+    // AI Copilot Demo functionality
+    document.querySelectorAll('.ai-action').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            const responseDiv = document.getElementById('ai-response');
+            
+            responseDiv.classList.remove('d-none');
+            responseDiv.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div> <span>Thinking...</span></div>';
+            
+            // Call the AI endpoint
+            fetch('/api/ai_copilot/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    action: action,
+                    content: document.body.innerText.substring(0, 500)
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                responseDiv.innerHTML = '<strong><i class="fas fa-robot text-primary me-2"></i>AI:</strong><br>' + data.result.replace(/\n/g, '<br>');
+            })
+            .catch(err => {
+                responseDiv.innerHTML = '<span class="text-danger">Failed to connect to AI service.</span>';
+            });
+        });
+    });
+</script>
+<script src="{% static 'js/site.js' %}"></script>
+</body>
+</html>

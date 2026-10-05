@@ -1,0 +1,108 @@
+{% extends 'studentforum/base.html' %}
+{% block title %}Community Moderation Center{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-shield-alt text-primary me-2"></i>Moderation Center</h2>
+        <span class="badge bg-danger">3 Pending Reports</span>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="list-group glass border-0 rounded-4 shadow-sm mb-4">
+                <a href="#" class="list-group-item list-group-item-action bg-transparent text-white active fw-bold border-0">
+                    <i class="fas fa-inbox me-2"></i>Pending Reviews
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent text-muted border-0">
+                    <i class="fas fa-flag me-2"></i>Flagged Content
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent text-muted border-0">
+                    <i class="fas fa-robot me-2"></i>AI Flags
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent text-muted border-0">
+                    <i class="fas fa-balance-scale me-2"></i>Appeals
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent text-muted border-0">
+                    <i class="fas fa-history me-2"></i>Audit Log
+                </a>
+            </div>
+            
+            <div class="card glass border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Platform Health</h6>
+                    <div class="d-flex justify-content-between text-muted small mb-2">
+                        <span>Spam Probability</span>
+                        <span class="text-success">Low</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-2">
+                        <span>Active Moderators</span>
+                        <span>4</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card glass border-0 shadow-sm mb-4">
+                <div class="card-body p-0">
+                    <div class="p-4 border-bottom border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">Prioritized Moderation Queue</h5>
+                        <select class="form-select form-select-sm glass text-white w-auto border-0">
+                            <option>High Severity First</option>
+                            <option>Oldest First</option>
+                        </select>
+                    </div>
+                    
+                    <div class="p-4">
+                        <!-- Mock Report Item -->
+                        <div class="card glass-elevated border-0 shadow-sm mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="badge bg-danger me-2">Harassment</span>
+                                        <span class="text-muted small">Reported 2 hours ago by @student123</span>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end glass border-0 shadow">
+                                            <li><a class="dropdown-item text-danger" href="#">Remove Content</a></li>
+                                            <li><a class="dropdown-item text-warning" href="#">Warn User</a></li>
+                                            <li><a class="dropdown-item" href="#">Dismiss Report</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold">Reported Comment:</h6>
+                                <p class="text-muted border-start border-3 border-danger ps-3">"This is a toxic comment that breaks community guidelines."</p>
+                                <div class="mt-3 pt-3 border-top border-secondary border-opacity-10 d-flex gap-2">
+                                    <button class="btn btn-sm btn-danger px-4 rounded-pill">Take Action</button>
+                                    <button class="btn btn-sm btn-outline-secondary px-4 rounded-pill">Dismiss</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mock AI Flag Item -->
+                        <div class="card glass-elevated border-0 shadow-sm mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="badge bg-warning text-dark me-2">AI Suspicion: Spam</span>
+                                        <span class="text-muted small">Detected 5 hours ago</span>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold">Reported Post:</h6>
+                                <p class="text-muted border-start border-3 border-warning ps-3">"Click here for free exam dumps 100% guarantee!!!"</p>
+                                <div class="mt-3 pt-3 border-top border-secondary border-opacity-10 d-flex gap-2">
+                                    <button class="btn btn-sm btn-danger px-4 rounded-pill">Delete & Ban</button>
+                                    <button class="btn btn-sm btn-outline-secondary px-4 rounded-pill">False Positive</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

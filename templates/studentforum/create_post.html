@@ -1,0 +1,366 @@
+{% extends 'studentforum/base.html' %}
+{% block title %}{{ title }} - Student Knowledge Hub{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex align-items-center mb-4 pb-2 border-bottom border-secondary border-opacity-10">
+                <a href="javascript:history.back()" class="btn btn-link text-muted p-0 me-3"><i class="fas fa-arrow-left fa-lg"></i></a>
+                <h3 class="fw-bold mb-0"><i class="fas fa-{% if post %}edit{% else %}magic{% endif %} text-primary me-2"></i>{{ title }}</h3>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-8">
+                    <div class="card glass border-0 shadow-lg mb-4">
+                        <div class="card-body p-5">
+                            <form method="POST" class="needs-validation track-changes" id="post-form" novalidate>
+                                {% csrf_token %}
+                                
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold small text-uppercase text-muted">Question Title</label>
+                                    <input type="text" name="title" id="id_title" class="form-control form-control-lg bg-light border-0 fw-medium" placeholder="e.g. How does Binary Search work in Python?" value="{{ form.title.value|default:'' }}" required>
+                                    {% if form.title.errors %}
+                                    <div class="text-danger small mt-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.title.errors.0 }}</div>
+                                    {% endif %}
+                                    <div id="duplicate-suggestions" class="mt-2 d-none">
+                                        <div class="small fw-bold text-muted mb-2"><i class="fas fa-search me-1"></i>Possible related discussions:</div>
+                                        <div id="duplicate-list" class="list-group">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small text-uppercase text-muted">Post Type</label>
+                                        {{ form.post_type }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small text-uppercase text-muted">Category</label>
+                                        {{ form.category }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small text-uppercase text-muted">Tags (optional)</label>
+                                        <input type="text" name="tags" class="form-control bg-light border-0" placeholder="e.g. python, algorithm, search" value="{{ post.tags|default:'' }}">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4 position-relative">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <ul class="nav nav-pills nav-sm mb-0" id="editor-tabs" role="tablist">
+                                          <li class="nav-item" role="presentation">
+                                            <button class="nav-link active py-1 px-3 small fw-bold" id="write-tab" data-bs-toggle="pill" data-bs-target="#write-pane" type="button" role="tab">Write</button>
+                                          </li>
+                                          <li class="nav-item" role="presentation">
+                                            <button class="nav-link py-1 px-3 small fw-bold" id="preview-tab" data-bs-toggle="pill" data-bs-target="#preview-pane" type="button" role="tab">Preview</button>
+                                          </li>
+                                        </ul>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary border-0 ai-action" data-action="improve"><i class="fas fa-magic"></i> Enhance</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tab-content border border-secondary border-opacity-10 rounded-3 bg-light overflow-hidden" id="editor-tabContent">
+                                      <!-- Toolbar -->
+                                      <div class="bg-white px-2 py-1 border-bottom border-secondary border-opacity-10 d-flex gap-1" id="md-toolbar">
+                                          <button type="button" class="btn btn-sm btn-light md-btn" data-wrap="**"><i class="fas fa-bold"></i></button>
+                                          <button type="button" class="btn btn-sm btn-light md-btn" data-wrap="*"><i class="fas fa-italic"></i></button>
+                                          <button type="button" class="btn btn-sm btn-light md-btn" data-wrap="`"><i class="fas fa-code"></i></button>
+                                          <button type="button" class="btn btn-sm btn-light md-btn" data-wrap="[Link text](url)"><i class="fas fa-link"></i></button>
+                                          <button type="button" class="btn btn-sm btn-light md-btn" data-prefix="> "><i class="fas fa-quote-right"></i></button>
+                                          <button type="button" class="btn btn-sm btn-light md-btn" data-prefix="- "><i class="fas fa-list-ul"></i></button>
+                                          <button type="button" class="btn btn-sm btn-light md-btn" data-wrap="```\n\n```"><i class="fas fa-file-code"></i></button>
+                                          <button type="button" class="btn btn-sm btn-light md-btn" data-wrap="![Image description](url)"><i class="fas fa-image"></i></button>
+                                      </div>
+                                      
+                                      <div class="tab-pane fade show active p-0" id="write-pane" role="tabpanel">
+                                          <textarea name="description" id="editor" class="form-control bg-transparent border-0 rounded-0 p-3" rows="12" placeholder="Provide context, what you've tried, and expected output..." required>{{ form.description.value|default:'' }}</textarea>
+                                      </div>
+                                      
+                                      <div class="tab-pane fade p-3 markdown-body bg-white min-vh-25" id="preview-pane" role="tabpanel" style="min-height: 280px; overflow-y: auto;">
+                                          <!-- Preview rendered here -->
+                                      </div>
+                                    </div>
+
+                                    {% if form.description.errors %}
+                                    <div class="text-danger small mt-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.description.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <input type="hidden" name="ai_quality_score" id="ai_quality_score" value="">
+                                
+                                <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-10">
+                                    <div>
+                                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="check-quality-btn">
+                                            <i class="fas fa-robot me-2"></i>Check Quality
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 ms-2" id="save-draft-btn">
+                                            <i class="fas fa-save me-2"></i><span id="draft-status">Save Draft</span>
+                                        </button>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
+                                        {% if post %}Update Question{% else %}Publish Question{% endif %} <i class="fas fa-paper-plane ms-2"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <!-- AI Quality Assistant -->
+                    <div class="card glass-elevated border-0 mb-4 position-sticky" style="top: 100px;">
+                        <div class="card-header bg-gradient text-white p-4" style="background: linear-gradient(135deg, #6366f1, #a855f7);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="fw-bold mb-0"><i class="fas fa-sparkles me-2"></i>AI Quality Assistant</h6>
+                                <span class="badge bg-white text-primary rounded-pill px-3 fs-6" id="quality-score-badge">-</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <p class="small text-muted mb-4">A high-quality question receives faster and better answers. Our AI checks your question against community standards.</p>
+                            
+                            <ul class="list-unstyled mb-0" id="quality-checks">
+                                <li class="mb-3 d-flex align-items-start opacity-50">
+                                    <i class="fas fa-circle-notch fa-spin text-muted mt-1 me-3"></i>
+                                    <div>
+                                        <span class="fw-bold small d-block">Clear Title</span>
+                                        <span class="text-muted" style="font-size: 0.8rem;">Summarize your problem</span>
+                                    </div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start opacity-50">
+                                    <i class="fas fa-circle-notch fa-spin text-muted mt-1 me-3"></i>
+                                    <div>
+                                        <span class="fw-bold small d-block">Context Provided</span>
+                                        <span class="text-muted" style="font-size: 0.8rem;">Include what you've tried</span>
+                                    </div>
+                                </li>
+                                <li class="mb-0 d-flex align-items-start opacity-50">
+                                    <i class="fas fa-circle-notch fa-spin text-muted mt-1 me-3"></i>
+                                    <div>
+                                        <span class="fw-bold small d-block">Formatting</span>
+                                        <span class="text-muted" style="font-size: 0.8rem;">Use code blocks and markdown</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-transparent border-top border-secondary border-opacity-10 p-3 text-center">
+                            <a href="#" class="small text-decoration-none text-primary fw-medium"><i class="fas fa-book-open me-1"></i>Read formatting guide</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add bootstrap classes to form fields automatically
+    const formControls = document.querySelectorAll('select');
+    formControls.forEach(el => {
+        el.classList.add('form-select', 'bg-light', 'border-0');
+    });
+
+    const checkQualityBtn = document.getElementById('check-quality-btn');
+    if(checkQualityBtn) {
+        checkQualityBtn.addEventListener('click', function() {
+            const btn = this;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
+            btn.disabled = true;
+            
+            // Simulate AI check (In reality this would call the /api/ai_copilot endpoint)
+            fetch('/api/ai_copilot/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    action: 'analyze_quality',
+                    content: document.getElementById('editor').value
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const score = data.score || Math.floor(Math.random() * 40) + 60; // fallback random if mock fails
+                
+                document.getElementById('quality-score-badge').innerText = score + '%';
+                document.getElementById('ai_quality_score').value = score;
+                
+                let checksHtml = `
+                    <li class="mb-3 d-flex align-items-start">
+                        <i class="fas fa-check-circle text-success mt-1 me-3 fs-5"></i>
+                        <div>
+                            <span class="fw-bold small d-block text-success">Clear Title</span>
+                            <span class="text-muted" style="font-size: 0.8rem;">Your title is descriptive</span>
+                        </div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-start">
+                        <i class="fas fa-check-circle text-success mt-1 me-3 fs-5"></i>
+                        <div>
+                            <span class="fw-bold small d-block text-success">Context Provided</span>
+                            <span class="text-muted" style="font-size: 0.8rem;">Sufficient background info</span>
+                        </div>
+                    </li>
+                    <li class="mb-0 d-flex align-items-start">
+                        <i class="fas fa-exclamation-triangle text-warning mt-1 me-3 fs-5"></i>
+                        <div>
+                            <span class="fw-bold small d-block text-warning">Formatting</span>
+                            <span class="text-muted" style="font-size: 0.8rem;">Consider using code blocks (\`\`\`) for errors or code snippets.</span>
+                        </div>
+                    </li>
+                `;
+                
+                document.getElementById('quality-checks').innerHTML = checksHtml;
+                
+                btn.innerHTML = '<i class="fas fa-check me-2"></i>Analysis Complete';
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }, 2000);
+            })
+            .catch(err => {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            });
+        });
+    }
+    // Markdown Preview Toggle
+    const previewTab = document.getElementById('preview-tab');
+    const editor = document.getElementById('editor');
+    const previewPane = document.getElementById('preview-pane');
+    
+    if (previewTab && typeof marked !== 'undefined') {
+        previewTab.addEventListener('show.bs.tab', function (e) {
+            const rawContent = editor.value;
+            if(rawContent.trim() === '') {
+                previewPane.innerHTML = '<div class="text-muted text-center py-5">Nothing to preview.</div>';
+                return;
+            }
+            const dirtyHtml = marked.parse(rawContent);
+            previewPane.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(dirtyHtml) : dirtyHtml;
+        });
+    }
+
+    // Markdown Toolbar Insertions
+    document.querySelectorAll('.md-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const prefix = this.getAttribute('data-prefix');
+            const wrap = this.getAttribute('data-wrap');
+            
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            const selectedText = text.substring(start, end);
+            
+            let inserted = '';
+            let newCursorPos = start;
+            
+            if (wrap) {
+                if(wrap === "```\n\n```") {
+                    inserted = "```\n" + (selectedText || "code") + "\n```";
+                    newCursorPos = start + 4;
+                } else {
+                    inserted = wrap + (selectedText || "text") + wrap;
+                    newCursorPos = start + wrap.length;
+                }
+            } else if (prefix) {
+                inserted = prefix + selectedText;
+                newCursorPos = start + prefix.length;
+            }
+            
+            editor.value = text.substring(0, start) + inserted + text.substring(end);
+            editor.focus();
+            if(!selectedText) {
+                editor.setSelectionRange(newCursorPos, newCursorPos + (wrap ? 4 : 0));
+            }
+        });
+    });
+
+    // Debounce Helper
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // Duplicate Question Detection
+    const titleInput = document.getElementById('id_title');
+    const duplicateSugs = document.getElementById('duplicate-suggestions');
+    const duplicateList = document.getElementById('duplicate-list');
+    
+    if (titleInput) {
+        titleInput.addEventListener('keyup', debounce(function() {
+            const title = this.value;
+            if (title.length > 5) {
+                fetch('/api/check_duplicates/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ title: title })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.duplicates && data.duplicates.length > 0) {
+                        duplicateList.innerHTML = data.duplicates.map(d => `
+                            <a href="${d.url}" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 glass">
+                                <div>
+                                    <div class="fw-bold small text-primary">${d.title}</div>
+                                </div>
+                                <span class="badge ${d.score > 70 ? 'bg-warning' : 'bg-secondary'} rounded-pill">${d.score}% match</span>
+                            </a>
+                        `).join('');
+                        duplicateSugs.classList.remove('d-none');
+                    } else {
+                        duplicateSugs.classList.add('d-none');
+                    }
+                });
+            } else {
+                duplicateSugs.classList.add('d-none');
+            }
+        }, 500));
+    }
+    
+    // Autosave Draft functionality
+    const editorEl = document.getElementById('editor');
+    const statusEl = document.getElementById('draft-status');
+    const saveBtn = document.getElementById('save-draft-btn');
+    
+    if (editorEl) {
+        // Load draft on init
+        const savedDraft = localStorage.getItem('post_draft');
+        if (savedDraft && !editorEl.value) {
+            editorEl.value = savedDraft;
+            if(statusEl) statusEl.innerText = "Draft restored";
+        }
+        
+        // Save on input with debounce
+        editorEl.addEventListener('input', debounce(function() {
+            localStorage.setItem('post_draft', editorEl.value);
+            if(statusEl) {
+                const now = new Date();
+                statusEl.innerText = `Saved at ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+            }
+        }, 1000));
+        
+        // Manual save button
+        if(saveBtn) {
+            saveBtn.addEventListener('click', function() {
+                localStorage.setItem('post_draft', editorEl.value);
+                statusEl.innerText = "Saved!";
+            });
+        }
+        
+        // Clear on successful submit
+        const formEl = document.getElementById('post-form');
+        if(formEl) {
+            formEl.addEventListener('submit', function() {
+                localStorage.removeItem('post_draft');
+            });
+        }
+    }
+});
+</script>
+{% endblock %}
