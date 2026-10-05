@@ -1,0 +1,129 @@
+{% extends 'studentforum/base.html' %}
+{% block title %}{{ post.title }} - Student Forum{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            {% if post.category %}
+                            <a href="{% url 'category_posts' post.category.pk %}" class="category-badge mb-2 d-inline-block">
+                                {{ post.category.name }}
+                            </a>
+                            {% endif %}
+                            <h3 class="fw-bold mt-2">{{ post.title }}</h3>
+                        </div>
+                        {% if user == post.user or user.is_staff %}
+                        <div class="d-flex gap-2 ms-3">
+                            <a href="{% url 'edit_post' post.pk %}" class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <a href="{% url 'delete_post' post.pk %}" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="text-muted small mb-4">
+                        <i class="fas fa-user-circle me-1"></i><strong>{{ post.user.username }}</strong>
+                        <span class="mx-2">•</span>
+                        <i class="fas fa-calendar me-1"></i>{{ post.created_date|date:"M d, Y H:i" }}
+                    </div>
+                    <div style="line-height:1.8; white-space:pre-wrap;">{{ post.description }}</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-comments me-2"></i>Comments ({{ comments.count }})
+                </div>
+                <div class="card-body p-3">
+                    {% for comment in comments %}
+                    <div class="comment-box">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="fw-bold text-primary">
+                                    <i class="fas fa-user-circle me-1"></i>{{ comment.user.username }}
+                                </span>
+                                <span class="text-muted small ms-2">{{ comment.created_date|date:"M d, Y H:i" }}</span>
+                            </div>
+                            {% if user == comment.user or user.is_staff %}
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'edit_comment' comment.pk %}" class="btn btn-outline-warning btn-sm py-0 px-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'delete_comment' comment.pk %}" class="btn btn-outline-danger btn-sm py-0 px-2">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <p class="mt-2 mb-0">{{ comment.comment_text }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">
+                        <i class="fas fa-comment-slash me-2"></i>No comments yet. Be the first!
+                    </p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if user.is_authenticated %}
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-plus-circle me-2"></i>Add a Comment
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_comment_text" class="form-label visually-hidden">Comment</label>
+                            {{ comment_form.comment_text }}
+                            {% if comment_form.comment_text.errors %}
+                            <div class="text-danger small mt-1">{{ comment_form.comment_text.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Post Comment
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="card text-center py-4">
+                <p class="text-muted mb-2">You must be logged in to comment.</p>
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">Login to Comment</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sidebar-card">
+                <h6 class="fw-bold mb-3"><i class="fas fa-user me-2 text-primary"></i>About the Author</h6>
+                <div class="text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-2"
+                         style="width:60px;height:60px;font-size:1.5rem;font-weight:800;">
+                        {{ post.user.username|first|upper }}
+                    </div>
+                    <h6 class="mb-0">{{ post.user.get_full_name|default:post.user.username }}</h6>
+                    <small class="text-muted">@{{ post.user.username }}</small>
+                    <div class="mt-2 small text-muted">
+                        <i class="fas fa-file-alt me-1"></i>{{ post.user.posts.count }} posts
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-card">
+                <h6 class="fw-bold mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Post Info</h6>
+                <p class="small text-muted mb-1"><strong>Category:</strong> {{ post.category.name|default:"Uncategorized" }}</p>
+                <p class="small text-muted mb-1"><strong>Posted:</strong> {{ post.created_date|date:"M d, Y" }}</p>
+                <p class="small text-muted mb-0"><strong>Comments:</strong> {{ comments.count }}</p>
+            </div>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-arrow-left me-2"></i>Back to Forum
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
