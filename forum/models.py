@@ -319,3 +319,42 @@ class StudySessionEvent(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.group.name}"
+
+# ==========================================
+# PHASE 7: CAREERS & GAMIFICATION
+# ==========================================
+class JobPosting(models.Model):
+    title = models.CharField(max_length=200)
+    company = models.CharField(max_length=200)
+    location = models.CharField(max_length=200, blank=True)
+    job_type = models.CharField(max_length=50, choices=(
+        ('FULL_TIME', 'Full Time'),
+        ('INTERNSHIP', 'Internship'),
+        ('PART_TIME', 'Part Time'),
+        ('CONTRACT', 'Contract')
+    ), default='FULL_TIME')
+    description = models.TextField()
+    apply_link = models.URLField()
+    posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.title} at {self.company}"
+
+class InterviewExperience(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="interview_experiences")
+    company = models.CharField(max_length=200)
+    role = models.CharField(max_length=200)
+    content = models.TextField()
+    difficulty = models.IntegerField(default=3, choices=((1, 'Very Easy'), (2, 'Easy'), (3, 'Medium'), (4, 'Hard'), (5, 'Very Hard')))
+    offer_status = models.CharField(max_length=20, choices=(
+        ('ACCEPTED', 'Offer Accepted'),
+        ('REJECTED', 'Offer Rejected'),
+        ('PENDING', 'Pending'),
+        ('NO_OFFER', 'No Offer')
+    ), default='PENDING')
+    created_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s experience at {self.company}"

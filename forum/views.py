@@ -528,3 +528,16 @@ def project_list(request):
     from .models import Project
     projects = Project.objects.all()
     return render(request, "studentforum/projects.html", {"projects": projects})
+
+@login_required
+def careers_portal(request):
+    from .models import JobPosting, InterviewExperience
+    jobs = JobPosting.objects.filter(is_active=True).order_by('-created_date')
+    experiences = InterviewExperience.objects.all().order_by('-created_date')
+    return render(request, "studentforum/careers.html", {"jobs": jobs, "experiences": experiences})
+
+@login_required
+def leaderboard(request):
+    from .models import UserProfile
+    top_users = UserProfile.objects.all().order_by('-reputation')[:20]
+    return render(request, "studentforum/leaderboard.html", {"top_users": top_users})

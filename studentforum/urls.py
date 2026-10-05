@@ -1,5 +1,11 @@
-from django.urls import path
-from forum import views
+from django.urls import path, include
+from rest_framework import routers
+from forum import views, api
+
+# DRF Router setup
+router = routers.DefaultRouter()
+router.register(r'posts', api.PostViewSet)
+router.register(r'categories', api.CategoryViewSet)
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -35,4 +41,9 @@ urlpatterns = [
     path("practice/", views.practice_mode, name="practice"),
     path("moderation/", views.moderation_dashboard, name="moderation_dashboard"),
     path("projects/", views.project_list, name="project_list"),
+    path("careers/", views.careers_portal, name="careers_portal"),
+    path("leaderboard/", views.leaderboard, name="leaderboard"),
+    
+    # REST API endpoints
+    path("api/v1/", include(router.urls)),
 ]

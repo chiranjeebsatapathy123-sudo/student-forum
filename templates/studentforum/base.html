@@ -52,6 +52,8 @@
                 <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'category_list' %}">Topics</a></li>
                 {% if user.is_authenticated %}
                 <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'project_list' %}">Projects</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'careers_portal' %}">Careers</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'leaderboard' %}">Leaderboard</a></li>
                 <li class="nav-item"><a class="nav-link fw-medium text-primary" href="{% url 'create_post' %}"><i class="fas fa-plus me-1"></i>Ask Question</a></li>
                 {% endif %}
             </ul>
@@ -256,6 +258,75 @@
             });
         });
     });
+<!-- Phase 7: Floating AI Tutor -->
+<div id="ai-tutor-widget" class="position-fixed bottom-0 end-0 m-4" style="z-index: 1060;">
+    <button class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" 
+            style="width: 60px; height: 60px; font-size: 24px;"
+            type="button" data-bs-toggle="collapse" data-bs-target="#ai-chat-collapse" aria-expanded="false">
+        <i class="fas fa-robot text-white"></i>
+    </button>
+    <div class="collapse mt-3 shadow-lg rounded-4 glass-elevated" id="ai-chat-collapse" style="width: 350px; position: absolute; bottom: 80px; right: 0;">
+        <div class="p-3 bg-primary bg-opacity-10 rounded-top-4 border-bottom border-primary border-opacity-25 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-robot me-2"></i>AI Tutor</h6>
+            <button type="button" class="btn-close btn-sm" data-bs-toggle="collapse" data-bs-target="#ai-chat-collapse"></button>
+        </div>
+        <div class="p-3 bg-white" style="height: 300px; overflow-y: auto;" id="ai-chat-messages">
+            <div class="d-flex mb-3">
+                <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-dark small" style="max-width: 80%;">
+                    Hi! I'm your AI Tutor. I can explain concepts, generate quizzes, or summarize this discussion. How can I help?
+                </div>
+            </div>
+        </div>
+        <div class="p-3 border-top rounded-bottom-4 bg-light">
+            <div class="input-group">
+                <input type="text" class="form-control form-control-sm rounded-start-pill" id="ai-chat-input" placeholder="Ask something...">
+                <button class="btn btn-primary btn-sm rounded-end-pill px-3" type="button" onclick="sendAiMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function sendAiMessage() {
+    const input = document.getElementById('ai-chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    
+    const messagesDiv = document.getElementById('ai-chat-messages');
+    // Add user message
+    messagesDiv.innerHTML += `
+        <div class="d-flex justify-content-end mb-3">
+            <div class="bg-primary text-white p-2 rounded-3 small" style="max-width: 80%;">
+                ${msg}
+            </div>
+        </div>
+    `;
+    input.value = '';
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    // Call AI endpoint
+    fetch('/api/ai_copilot/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify({ action: 'chat', content: msg })
+    })
+    .then(res => res.json())
+    .then(data => {
+        messagesDiv.innerHTML += `
+            <div class="d-flex mb-3">
+                <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-dark small" style="max-width: 80%;">
+                    ${data.result.replace(/\n/g, '<br>')}
+                </div>
+            </div>
+        `;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+}
+document.getElementById('ai-chat-input')?.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') sendAiMessage();
+});
 </script>
 <script src="{% static 'js/site.js' %}"></script>
 </body>

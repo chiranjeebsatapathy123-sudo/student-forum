@@ -11,12 +11,14 @@ ALLOWED_HOSTS = [host.strip() for host in os.environ.get("ALLOWED_HOSTS", "local
 CSRF_TRUSTED_ORIGINS = [origin for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "https://*.vercel.app").split(",") if origin]
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
     "forum",
 ]
 
@@ -32,6 +34,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "studentforum.urls"
+WSGI_APPLICATION = "studentforum.wsgi.application"
+ASGI_APPLICATION = "studentforum.asgi.application"
 
 TEMPLATES = [
     {
@@ -114,3 +118,23 @@ if not DEBUG:
     X_FRAME_OPTIONS = 'DENY'
     if SECRET_KEY == 'django-insecure-student-forum-secret-key-change-in-production':
         raise ValueError('Insecure SECRET_KEY used in production!')
+
+# Channels configuration
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+# REST Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+}
